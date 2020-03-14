@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Posix SITL environment launch script -->
+    <!-- launches PX4 SITL, Gazebo environment, and spawns vehicle -->
+    <!-- vehicle pose -->
+    <arg name="x" default="0"/>
+    <arg name="y" default="0"/>
+    <arg name="z" default="0"/>
+    <arg name="R" default="0"/>
+    <arg name="P" default="0"/>
+    <arg name="Y" default="0"/>
+    <arg name="ID" default="0"/>
+    <!-- vehicle model and world -->
+    <arg name="est" default="ekf2"/>
+    <arg name="vehicle" default="iris"/>
+    <arg name="world" default="$(find mavlink_sitl_gazebo)/worlds/empty.world"/>
+    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle)_$(arg ID).sdf"/>
+    <env name="PX4_SIM_MODEL" value="$(arg vehicle)" />
+    <env name="PX4_ESTIMATOR" value="$(arg est)" />
+    <arg name="mavlink_udp_port" default="14560"/>
+    <!--param name="robot_description" command="$(find xacro)/xacro.py $(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle)_$(arg ID).urdf.xacro" /-->
+            <!-- PX4 configs -->
+    <arg name="interactive" default="true"/>
+    <!-- PX4 SITL -->
+    <arg unless="$(arg interactive)" name="px4_command_arg1" value="-d"/>
+    <arg     if="$(arg interactive)" name="px4_command_arg1" value=""/>
+    <node name="sitl_$(arg ID)" pkg="px4" type="px4" output="screen"
+        args="$(find px4)/ROMFS/px4fmu_common -s etc/init.d-posix/rcS -i $(arg ID) $(arg px4_command_arg1)" required="true"/>
+    <!--node name="sitl_$(arg ID)" pkg="px4" type="px4" output="screen"
+        args="$(find px4)/ROMFS/px4fmu_common -s etc/init.d-posix/6011_typhoon_h480 -i $(arg ID) $(arg px4_command_arg1)" required="true"/-->
+
+    <!-- gazebo model -->
+    <node name="$(arg vehicle)_$(arg ID)" pkg="gazebo_ros" type="spawn_model" output="screen" args="-sdf -file $(arg sdf) -model $(arg vehicle)_$(arg ID) -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg R) -P $(arg P) -Y $(arg Y)"/>
+    <!--node name="$(arg vehicle)_$(arg ID)" pkg="gazebo_ros" type="spawn_model" args="-param robot_description -urdf -model $(arg vehicle)_$(arg ID)" respawn="false" output="screen"/-->
+    <!--arg name="ID" value="1"/>
+    <arg name="fcu_url" default="udp://:14540@127.0.0.1:14557"/-->
+    <!-- MAVROS -->
+    <!--include file="$(find mavros)/launch/px4.launch">
+        <arg name="fcu_url" value="$(arg fcu_url)"/-->
+        <!--arg name="gcs_url" value=""/-->
+        <!--arg name="tgt_system" value="$(eval 1 + arg('ID'))"/-->
+        <!--arg name="tgt_component" value="1"/-->
+    <!--/include-->
+</launch>
+
